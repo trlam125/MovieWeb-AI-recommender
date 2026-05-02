@@ -1,0 +1,35 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.venv/
+env/
+.env
+.env.*
+
+# Database
+*.sql
+*.sqlite
+
+# OS & Logs
+.DS_Store
+Thumbs.db
+*.log
+logs/
+
+# IDE
+.vscode/
+.idea/
+
+# Node & Build
+node_modules/
+dist/
+dist-ssr/
+*.local
+.eslintcache
+
+# ML & Temporary
+*.joblib
+*.csv
+scratch/

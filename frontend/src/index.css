@@ -1,0 +1,17 @@
+@import "tailwindcss";
+
+body {
+  background-color: #141414;
+  color: white;
+  margin: 0;
+  padding: 0;
+}
+
+/* Ẩn scrollbar cho MovieRow */
+.scrollbar-hide::-webkit-scrollbar {
+    display: none;
+}
+.scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
