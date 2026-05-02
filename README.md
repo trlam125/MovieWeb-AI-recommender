@@ -54,17 +54,6 @@ MovieWeb-AI-recommender/
 └── artifacts/         # Trained model artifacts (.joblib)
 ```
 
-### 🚀 Installation Guide
-
-#### Prerequisites
-- **Node.js** (version 18+)
-- **Python** (version 3.9+)
-- **MySQL Server**
-- Website will run at: `http://localhost:5173`
-
-### 📊 Training Results
-The Hybrid model achieves a balance between highly personalized recommendations (SVD) and content relevance (Content-Based), effectively solving the data sparsity problem.
-
 ### 📥 Data Setup & Model Training
 
 #### 1. Download Dataset
@@ -79,7 +68,23 @@ python ai_core/train_model.py
 ```
 The trained model will be saved in the `artifacts/` folder.
 
+### 🚀 Installation Guide
+
+#### Prerequisites
+- **Node.js** (version 18+)
+- **Python** (version 3.9+)
+- **MySQL Server**
+- Website will run at: `http://localhost:5173`
+
+### 📊 Training Results
+The Hybrid model achieves a balance between highly personalized recommendations (SVD) and content relevance (Content-Based), effectively solving the data sparsity problem.
+
+
+
 ---
+
+
+
 
 Một hệ thống gợi ý phim thông minh được xây dựng với thuật toán lai ghép (Hybrid Recommendation). Dự án kết hợp sức mạnh của **FastAPI** ở backend, **React** ở frontend và các mô hình học máy để mang lại trải nghiệm người dùng tối ưu.
 
@@ -135,17 +140,6 @@ MovieWeb-AI-recommender/
 └── artifacts/         # Chứa model đã huấn luyện (.joblib)
 ```
 
-### 🚀 Hướng Dẫn Cài Đặt
-
-#### Chuẩn bị môi trường
-- **Node.js** (phiên bản 18+)
-- **Python** (phiên bản 3.9+)
-- **MySQL Server**
-- Website sẽ chạy tại địa chỉ: `http://localhost:5173`
-
-### 📊 Kết Quả Huấn Luyện
-Mô hình Hybrid đạt được sự cân bằng giữa việc gợi ý các phim cá nhân hóa cao (SVD) và duy trì sự liên quan về nội dung (Content-Based), giúp giải quyết vấn đề dữ liệu thưa thớt (sparsity) hiệu quả.
-
 ### 📥 Cài đặt Dữ liệu & Huấn luyện Mô hình
 
 #### 1. Tải bộ dữ liệu
@@ -159,3 +153,14 @@ Dự án sử dụng bộ dữ liệu MovieLens 100k (phiên bản nhỏ).
 python ai_core/train_model.py
 ```
 Mô hình sau khi huấn luyện sẽ được lưu vào thư mục `artifacts/`.
+
+### 🚀 Hướng Dẫn Cài Đặt
+
+#### Chuẩn bị môi trường
+- **Node.js** (phiên bản 18+)
+- **Python** (phiên bản 3.9+)
+- **MySQL Server**
+- Website sẽ chạy tại địa chỉ: `http://localhost:5173`
+
+### 📊 Kết Quả Huấn Luyện
+Mô hình Hybrid đạt được sự cân bằng giữa việc gợi ý các phim cá nhân hóa cao (SVD) và duy trì sự liên quan về nội dung (Content-Based), giúp giải quyết vấn đề dữ liệu thưa thớt (sparsity) hiệu quả.
