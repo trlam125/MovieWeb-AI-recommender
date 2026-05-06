@@ -50,7 +50,6 @@ const MovieModal = ({ movie, onClose, onMovieClick, isInMyList, onToggleMyList }
   const [trailerLoading, setTrailerLoading] = useState(true);
   const [backdropUrl, setBackdropUrl] = useState(null);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [trailerOverlayOpen, setTrailerOverlayOpen] = useState(false);
 
   useEffect(() => {
     // Ngăn cuộn trang nền khi mở Modal
@@ -78,7 +77,6 @@ const MovieModal = ({ movie, onClose, onMovieClick, isInMyList, onToggleMyList }
 
     // Load trailer & backdrop
     setIsPlaying(false);
-    setTrailerOverlayOpen(false);
     setTrailerKey(null);
     setTrailerLoading(true);
     fetchMovieTrailer(movie.tmdbId, movie.title)
@@ -108,20 +106,33 @@ const MovieModal = ({ movie, onClose, onMovieClick, isInMyList, onToggleMyList }
     return () => { isMounted = false; };
   }, [movie]);
 
-  useEffect(() => {
-    if (!trailerOverlayOpen) return;
-    const onKey = (e) => {
-      if (e.key === 'Escape') setTrailerOverlayOpen(false);
-    };
-    document.addEventListener('keydown', onKey);
-    return () => document.removeEventListener('keydown', onKey);
-  }, [trailerOverlayOpen]);
-
   if (!movie) return null;
+
+  const openTrailerWindow = () => {
+    if (!trailerKey) return;
+    const embedUrl = `https://www.youtube.com/embed/${trailerKey}?autoplay=1&rel=0&modestbranding=1`;
+    const dualScreenLeft = window.screenLeft ?? window.screenX;
+    const dualScreenTop = window.screenTop ?? window.screenY;
+    const width = Math.min(1280, window.screen.availWidth - 80);
+    const height = Math.min(720, window.screen.availHeight - 80);
+    const left = Math.round(dualScreenLeft + (window.outerWidth - width) / 2);
+    const top = Math.round(dualScreenTop + (window.outerHeight - height) / 2);
+    const features = `popup=yes,width=${width},height=${height},left=${left},top=${top},scrollbars=no,resizable=yes`;
+    const w = window.open(embedUrl, `trailer_${trailerKey}`, features);
+    if (!w) {
+      window.open(`https://www.youtube.com/watch?v=${trailerKey}`, '_blank', 'noopener,noreferrer');
+    } else {
+      try {
+        w.opener = null;
+      } catch {
+        /* ignore */
+      }
+    }
+  };
 
   const handlePlayClick = () => {
     if (trailerKey) {
-      setTrailerOverlayOpen(true);
+      openTrailerWindow();
     } else {
       setIsPlaying(true);
     }
@@ -143,7 +154,6 @@ const MovieModal = ({ movie, onClose, onMovieClick, isInMyList, onToggleMyList }
           <X className="w-6 h-6" />
         </button>
 
-        { }
         <div className="relative w-full h-[400px] bg-black">
           {isPlaying ? (
             <div className="absolute inset-0">
@@ -237,42 +247,6 @@ const MovieModal = ({ movie, onClose, onMovieClick, isInMyList, onToggleMyList }
           )}
         </div>
       </div>
-
-      {/* Cửa sổ phát trailer riêng (kiểu Netflix) — chỉ mở khi đã có trailerKey */}
-      {trailerOverlayOpen && trailerKey && (
-        <div
-          className="fixed inset-0 z-[200] flex items-center justify-center bg-black/95 px-4 md:px-10"
-          role="dialog"
-          aria-modal="true"
-          aria-label="Trailer"
-          onClick={() => setTrailerOverlayOpen(false)}
-        >
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              setTrailerOverlayOpen(false);
-            }}
-            className="absolute top-4 right-4 md:top-8 md:right-8 z-10 rounded-full bg-white/10 p-2 text-white hover:bg-white hover:text-black transition-colors"
-            aria-label="Đóng trailer"
-          >
-            <X className="w-7 h-7" />
-          </button>
-          <div
-            className="relative w-full max-w-5xl aspect-video rounded-md overflow-hidden shadow-2xl ring-1 ring-white/10"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <iframe
-              className="absolute inset-0 h-full w-full"
-              src={`https://www.youtube.com/embed/${trailerKey}?autoplay=1&rel=0&modestbranding=1`}
-              title={`Trailer — ${movie.title}`}
-              frameBorder="0"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-            />
-          </div>
-        </div>
-      )}
     </div>
   );
 };
