@@ -47,8 +47,10 @@ const MovieModal = ({ movie, onClose, onMovieClick, isInMyList, onToggleMyList }
   const [similarMovies, setSimilarMovies] = useState([]);
   const [loadingSimilar, setLoadingSimilar] = useState(false);
   const [trailerKey, setTrailerKey] = useState(null);
+  const [trailerLoading, setTrailerLoading] = useState(true);
   const [backdropUrl, setBackdropUrl] = useState(null);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [trailerOverlayOpen, setTrailerOverlayOpen] = useState(false);
 
   useEffect(() => {
     // Ngăn cuộn trang nền khi mở Modal
@@ -76,9 +78,16 @@ const MovieModal = ({ movie, onClose, onMovieClick, isInMyList, onToggleMyList }
 
     // Load trailer & backdrop
     setIsPlaying(false);
-    fetchMovieTrailer(movie.tmdbId, movie.title).then(key => {
-      if (isMounted) setTrailerKey(key);
-    });
+    setTrailerOverlayOpen(false);
+    setTrailerKey(null);
+    setTrailerLoading(true);
+    fetchMovieTrailer(movie.tmdbId, movie.title)
+      .then(key => {
+        if (isMounted) setTrailerKey(key);
+      })
+      .finally(() => {
+        if (isMounted) setTrailerLoading(false);
+      });
     fetchMovieBackdrop(movie.tmdbId, movie.title).then(url => {
       if (isMounted) setBackdropUrl(url);
     });
@@ -99,7 +108,24 @@ const MovieModal = ({ movie, onClose, onMovieClick, isInMyList, onToggleMyList }
     return () => { isMounted = false; };
   }, [movie]);
 
+  useEffect(() => {
+    if (!trailerOverlayOpen) return;
+    const onKey = (e) => {
+      if (e.key === 'Escape') setTrailerOverlayOpen(false);
+    };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [trailerOverlayOpen]);
+
   if (!movie) return null;
+
+  const handlePlayClick = () => {
+    if (trailerKey) {
+      setTrailerOverlayOpen(true);
+    } else {
+      setIsPlaying(true);
+    }
+  };
 
   return (
     <div className="fixed inset-0 z-[100] flex justify-center items-start overflow-y-auto bg-black/70 pt-10 pb-10">
@@ -121,31 +147,20 @@ const MovieModal = ({ movie, onClose, onMovieClick, isInMyList, onToggleMyList }
         <div className="relative w-full h-[400px] bg-black">
           {isPlaying ? (
             <div className="absolute inset-0">
-              {trailerKey ? (
-                <iframe
-                  className="w-full h-full"
-                  src={`https://www.youtube.com/embed/${trailerKey}?autoplay=1&rel=0&modestbranding=1`}
-                  title="Movie Trailer"
-                  frameBorder="0"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                ></iframe>
-              ) : (
-                <div className="w-full h-full flex flex-col items-center justify-center bg-[#181818] p-10 text-center animate-fade-in">
-                   <div className="w-16 h-16 bg-gray-800 rounded-full flex items-center justify-center mb-4 text-gray-500">
-                     <Play className="w-8 h-8 opacity-40" />
-                   </div>
-                   <h2 className="text-xl font-bold text-white mb-2">Trailer không khả dụng</h2>
-                   <p className="text-gray-400 max-w-md mb-6">Rất tiếc, chúng tôi không thể phát trực tiếp trailer cho phim này. Bạn có thể tìm thấy nó trên YouTube.</p>
-                   <button 
-                    onClick={() => window.open(`https://www.youtube.com/results?search_query=${encodeURIComponent(movie.title + ' trailer')}`, '_blank')}
-                    className="bg-red-600 text-white px-6 py-2 rounded font-bold hover:bg-red-700 transition flex items-center gap-2"
-                   >
-                     <Play className="w-4 h-4 fill-white" /> Tìm trên YouTube
-                   </button>
+              <div className="w-full h-full flex flex-col items-center justify-center bg-[#181818] p-10 text-center animate-fade-in">
+                <div className="w-16 h-16 bg-gray-800 rounded-full flex items-center justify-center mb-4 text-gray-500">
+                  <Play className="w-8 h-8 opacity-40" />
                 </div>
-              )}
-              <button 
+                <h2 className="text-xl font-bold text-white mb-2">Trailer không khả dụng</h2>
+                <p className="text-gray-400 max-w-md mb-6">Rất tiếc, chúng tôi không thể phát trực tiếp trailer cho phim này. Bạn có thể tìm thấy nó trên YouTube.</p>
+                <button
+                  onClick={() => window.open(`https://www.youtube.com/results?search_query=${encodeURIComponent(movie.title + ' trailer')}`, '_blank')}
+                  className="bg-red-600 text-white px-6 py-2 rounded font-bold hover:bg-red-700 transition flex items-center gap-2"
+                >
+                  <Play className="w-4 h-4 fill-white" /> Tìm trên YouTube
+                </button>
+              </div>
+              <button
                 onClick={() => setIsPlaying(false)}
                 className="absolute top-4 left-4 bg-black/60 text-white p-2 rounded-full hover:bg-white hover:text-black transition-colors z-20"
                 title="Quay lại"
@@ -172,10 +187,12 @@ const MovieModal = ({ movie, onClose, onMovieClick, isInMyList, onToggleMyList }
                 <h1 className="text-4xl font-bold text-white mb-4 drop-shadow-lg">{movie.title}</h1>
                 <div className="flex items-center gap-4">
                   <button
-                    className="flex items-center gap-2 bg-white text-black px-8 py-2 rounded font-bold hover:bg-white/80 transition"
-                    onClick={() => setIsPlaying(true)}
+                    type="button"
+                    disabled={trailerLoading}
+                    className="flex items-center gap-2 bg-white text-black px-8 py-2 rounded font-bold hover:bg-white/80 transition disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-white"
+                    onClick={handlePlayClick}
                   >
-                    <Play className="w-5 h-5 fill-black" /> Phát
+                    <Play className="w-5 h-5 fill-black" /> {trailerLoading ? 'Đang tải…' : 'Phát'}
                   </button>
                   <button 
                     className={`flex items-center justify-center w-10 h-10 rounded-full transition ${
@@ -220,6 +237,42 @@ const MovieModal = ({ movie, onClose, onMovieClick, isInMyList, onToggleMyList }
           )}
         </div>
       </div>
+
+      {/* Cửa sổ phát trailer riêng (kiểu Netflix) — chỉ mở khi đã có trailerKey */}
+      {trailerOverlayOpen && trailerKey && (
+        <div
+          className="fixed inset-0 z-[200] flex items-center justify-center bg-black/95 px-4 md:px-10"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Trailer"
+          onClick={() => setTrailerOverlayOpen(false)}
+        >
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              setTrailerOverlayOpen(false);
+            }}
+            className="absolute top-4 right-4 md:top-8 md:right-8 z-10 rounded-full bg-white/10 p-2 text-white hover:bg-white hover:text-black transition-colors"
+            aria-label="Đóng trailer"
+          >
+            <X className="w-7 h-7" />
+          </button>
+          <div
+            className="relative w-full max-w-5xl aspect-video rounded-md overflow-hidden shadow-2xl ring-1 ring-white/10"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <iframe
+              className="absolute inset-0 h-full w-full"
+              src={`https://www.youtube.com/embed/${trailerKey}?autoplay=1&rel=0&modestbranding=1`}
+              title={`Trailer — ${movie.title}`}
+              frameBorder="0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 };
