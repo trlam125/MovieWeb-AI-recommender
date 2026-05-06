@@ -50,6 +50,7 @@ const MovieModal = ({ movie, onClose, onMovieClick, isInMyList, onToggleMyList }
   const [trailerLoading, setTrailerLoading] = useState(true);
   const [backdropUrl, setBackdropUrl] = useState(null);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [trailerOverlayOpen, setTrailerOverlayOpen] = useState(false);
 
   useEffect(() => {
     // Ngăn cuộn trang nền khi mở Modal
@@ -77,6 +78,7 @@ const MovieModal = ({ movie, onClose, onMovieClick, isInMyList, onToggleMyList }
 
     // Load trailer & backdrop
     setIsPlaying(false);
+    setTrailerOverlayOpen(false);
     setTrailerKey(null);
     setTrailerLoading(true);
     fetchMovieTrailer(movie.tmdbId, movie.title)
@@ -106,33 +108,20 @@ const MovieModal = ({ movie, onClose, onMovieClick, isInMyList, onToggleMyList }
     return () => { isMounted = false; };
   }, [movie]);
 
-  if (!movie) return null;
+  useEffect(() => {
+    if (!trailerOverlayOpen) return;
+    const onKey = (e) => {
+      if (e.key === 'Escape') setTrailerOverlayOpen(false);
+    };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [trailerOverlayOpen]);
 
-  const openTrailerWindow = () => {
-    if (!trailerKey) return;
-    const embedUrl = `https://www.youtube.com/embed/${trailerKey}?autoplay=1&rel=0&modestbranding=1`;
-    const dualScreenLeft = window.screenLeft ?? window.screenX;
-    const dualScreenTop = window.screenTop ?? window.screenY;
-    const width = Math.min(1280, window.screen.availWidth - 80);
-    const height = Math.min(720, window.screen.availHeight - 80);
-    const left = Math.round(dualScreenLeft + (window.outerWidth - width) / 2);
-    const top = Math.round(dualScreenTop + (window.outerHeight - height) / 2);
-    const features = `popup=yes,width=${width},height=${height},left=${left},top=${top},scrollbars=no,resizable=yes`;
-    const w = window.open(embedUrl, `trailer_${trailerKey}`, features);
-    if (!w) {
-      window.open(`https://www.youtube.com/watch?v=${trailerKey}`, '_blank', 'noopener,noreferrer');
-    } else {
-      try {
-        w.opener = null;
-      } catch {
-        /* ignore */
-      }
-    }
-  };
+  if (!movie) return null;
 
   const handlePlayClick = () => {
     if (trailerKey) {
-      openTrailerWindow();
+      setTrailerOverlayOpen(true);
     } else {
       setIsPlaying(true);
     }
@@ -247,6 +236,41 @@ const MovieModal = ({ movie, onClose, onMovieClick, isInMyList, onToggleMyList }
           )}
         </div>
       </div>
+
+      {/* Trailer toàn cửa sổ trình duyệt (giống Netflix — iframe phủ 100% viewport) */}
+      {trailerOverlayOpen && trailerKey && (
+        <div
+          className="fixed inset-0 z-[200] bg-black"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Trailer"
+          onClick={() => setTrailerOverlayOpen(false)}
+        >
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              setTrailerOverlayOpen(false);
+            }}
+            className="absolute top-4 right-4 z-[210] rounded-full bg-white/10 p-2 text-white hover:bg-white hover:text-black transition-colors"
+            aria-label="Đóng trailer"
+          >
+            <X className="w-7 h-7" />
+          </button>
+          <div
+            className="absolute inset-0"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <iframe
+              className="absolute inset-0 h-full w-full border-0"
+              src={`https://www.youtube.com/embed/${trailerKey}?autoplay=1&rel=0&modestbranding=1`}
+              title={`Trailer — ${movie.title}`}
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 };
