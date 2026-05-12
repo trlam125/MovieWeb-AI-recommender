@@ -29,7 +29,12 @@ dist-ssr/
 *.local
 .eslintcache
 
-# ML & Temporary
+# ML & Model artifacts
 *.joblib
+artifacts/
+
+# Data files
 *.csv
-scratch/
+
+# Scratch/Test files
+scratch/
