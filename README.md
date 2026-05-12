@@ -78,14 +78,10 @@ The trained model will be saved in the `artifacts/` folder.
 
 ### 📊 Training Results
 The Hybrid model achieves a balance between highly personalized recommendations (SVD) and content relevance (Content-Based), effectively solving the data sparsity problem.
-
-
-
 ---
-
-
-
-
+<br>
+<br>
+<br>
 Một hệ thống gợi ý phim thông minh được xây dựng với thuật toán lai ghép (Hybrid Recommendation). Dự án kết hợp sức mạnh của **FastAPI** ở backend, **React** ở frontend và các mô hình học máy để mang lại trải nghiệm người dùng tối ưu.
 
 ### 🌟 Tính Năng Chính
